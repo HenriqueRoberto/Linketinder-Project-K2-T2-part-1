@@ -1,0 +1,23 @@
+:root {
+  --purple: #5800f0;
+  --orange: #fb6027;
+  --red: #ff3434;
+  --border-grey: #b9b0b0;
+}
+
+html {
+  font-size: 62.5%; /* 1rem = 10px */
+  overflow: hidden;
+}
+
+body {
+  font-family: "Poppins", sans-serif;
+  letter-spacing: 0.1rem;
+  font-size: 1.6rem; /* 16px */
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}

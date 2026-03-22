@@ -1,0 +1,238 @@
+body {
+  background: linear-gradient(to right, var(--purple) 53%, var(--orange) 47%);
+}
+
+div.container {
+  display: flex;
+  justify-content: space-between;
+  height: 100vh;
+  width: 100%;
+  padding: 5rem 6rem;
+}
+
+section.banner-text {
+  height: 60%;
+  width: 50%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+section.banner-text h1 {
+  width: 20%;
+  font-size: 4rem;
+  color: white;
+  border-bottom: 0.4rem solid #fb6027;
+}
+
+section.banner-text p {
+  font-size: 5rem;
+  color: white;
+  font-weight: 700;
+}
+
+main {
+  background-color: white;
+  padding: 2rem;
+  width: 38%;
+  min-height: 90vh;
+  display: flex;
+  flex-direction: column; /* Garante alinhamento vertical */
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0.1rem 0.2rem 2rem -0.6rem #00000099;
+  z-index: 999;
+  overflow-y: auto;
+}
+
+section.sec-form {
+  width: 100%;
+}
+
+form {
+  gap: 1rem;
+  display: flex;
+  align-items: center;
+  text-align: center;
+  flex-direction: column;
+  padding: 2rem 0;
+}
+
+form .form-group {
+  width: 80%;
+}
+
+form h1 {
+  font-size: 5rem;
+  letter-spacing: 0.2rem;
+}
+
+form.form-login h1 {
+  position: relative;
+  top: -4rem;
+}
+
+form.form-empresa h1,
+form.form-candidato h1 {
+  width: 50%;
+  line-height: 4rem;
+}
+
+form.form-empresa h1 span,
+form.form-candidato h1 span,
+form.form-login h1 span {
+  color: var(--orange);
+}
+
+form.form-empresa h1 span,
+form.form-candidato h1 span {
+  font-size: 4rem;
+}
+
+form label {
+  display: flex;
+  align-self: flex-start;
+  color: rgb(66, 66, 66);
+  font-weight: 700;
+  font-size: 1.8rem;
+  margin-left: 2.5%;
+}
+
+form.form-login label {
+  margin-bottom: 1rem;
+}
+
+form.form-empresa label,
+form.form-candidato label {
+  margin-bottom: 0.5rem;
+}
+
+form input {
+  border-radius: 3.2rem;
+}
+
+form textarea {
+  border-radius: 1rem;
+  resize: none;
+}
+
+form input,
+form textarea {
+  width: 95%;
+}
+
+form.form-login input {
+  height: 6vh;
+  padding: 0 1.5rem; /* Padding lateral apenas para não cortar o texto */
+  border: 0.1rem solid var(--border-grey);
+  font-size: 1.6rem;
+  box-sizing: border-box; /* Essencial para o padding não aumentar o width */
+}
+
+form.form-empresa input,
+form.form-empresa textarea,
+form.form-candidato input,
+form.form-candidato textarea {
+  padding: 0.5rem 1rem;
+  border: 0.1rem solid var(--border-grey);
+  font-size: 1.6rem;
+  box-sizing: border-box;
+}
+
+form button#back-login-empresa,
+form button#back-login-candidato {
+  position: absolute;
+  right: 35%;
+  border-radius: 50%;
+  width: 3.2rem;
+  background-color: transparent;
+  color: black;
+  border: 0.2rem solid var(--border-grey);
+  font-size: 1.6rem;
+  cursor: pointer;
+}
+
+form button {
+  border-radius: 3.2rem;
+  background-color: var(--purple);
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-size: 1.8rem;
+  font-weight: 700;
+}
+
+form.form-login button {
+  width: 80%;
+  height: 6vh;
+  margin-top: 1rem;
+}
+
+form.form-empresa button,
+form.form-candidato button {
+  width: 60%;
+  height: 4vh;
+}
+
+form.form-login .form-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+@media screen and (max-width: 768px) and (min-width: 426px) {
+  body {
+    background: linear-gradient(to right, var(--purple) 50%, var(--orange) 50%);
+  }
+  div.container {
+    justify-content: center;
+  }
+
+  main {
+    width: 86%;
+  }
+
+  section.banner-text {
+    display: none;
+  }
+  form button#back-login-empresa,
+  form button#back-login-candidato {
+    right: 81%;
+  }
+}
+
+@media screen and (max-width: 425px) {
+  body {
+    background: linear-gradient(to right, var(--purple) 50%, var(--orange) 50%);
+  }
+  div.container {
+    justify-content: center;
+    padding: 1rem;
+  }
+
+  main {
+    width: 96%;
+  }
+
+  section.banner-text {
+    display: none;
+  }
+
+  form button#back-login-empresa,
+  form button#back-login-candidato {
+    right: 81%;
+  }
+
+  form.form-empresa h1,
+  form.form-empresa h1 span,
+  form.form-candidato h1,
+  form.form-candidato h1 span {
+    font-size: 3rem;
+    line-height: 3rem;
+    margin-bottom: 1rem;
+  }
+
+  form label {
+    font-size: 1.8rem;
+  }
+}

@@ -1,0 +1,133 @@
+.match-list {
+  height: 64vh;
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+}
+
+.match-item,
+.vaga-item {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  width: 100%;
+  gap: 1rem;
+  padding: 1rem;
+  font-size: 1.6rem;
+  border: 0.1rem solid #00000056;
+  margin-bottom: 0.1rem;
+}
+
+.match-item span {
+  color: var(--purple);
+  font-weight: 700;
+}
+
+.arrow {
+  margin-left: auto;
+  cursor: pointer;
+  font-size: 1.4rem;
+  transition: 0.2s;
+}
+
+.arrow.active {
+  transform: rotate(180deg);
+}
+
+.drop-empresa-menu-candidato {
+  width: 98%;
+  max-height: 30vh;
+  overflow-y: auto;
+  border-top: none !important;
+  border: 0.1rem solid #00000056;
+  padding: 0 2rem;
+}
+.drop-empresa-menu-candidato ul {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  padding: 1rem;
+  width: 100%;
+  border-bottom: 0.1rem solid #00000056;
+}
+
+.drop-empresa-menu-candidato li::marker {
+  color: var(--orange);
+  font-size: 2.2rem;
+}
+.drop-empresa-menu-candidato ul li:nth-child(2)::marker {
+  color: transparent;
+}
+
+.group-dados-vaga {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.group-dados-vaga input {
+  border: none;
+}
+
+.group-dados-vaga textarea,
+input {
+  width: 100%;
+  background: transparent;
+  margin-bottom: 0.5rem;
+}
+
+.group-dados-vaga label {
+  text-align: start;
+  color: rgb(39, 39, 39);
+  font-weight: 700;
+  font-size: 1.6rem;
+  margin-bottom: 0.5rem;
+}
+
+.group-dados-vaga textarea {
+  padding: 1rem;
+}
+
+.group-dados-vaga textarea {
+  height: 30vh;
+  resize: none;
+}
+
+.grafico-competencias {
+  width: 100%;
+  overflow-x: auto;
+}
+
+#grafico-competencias {
+  min-width: 30rem;
+}
+
+div#view-vaga {
+  z-index: 1000;
+  padding: 2rem;
+  top: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-bottom: 1rem white solid;
+}
+
+h3#titulo-vaga-card {
+  border-bottom: 0.3rem solid var(--purple);
+}
+
+div#empresa-view-dados {
+  top: -8%;
+  position: relative;
+  border-top: 0.1rem rgba(0, 0, 0, 0.842) solid;
+  padding-top: 2rem;
+}
+
+div#empresa-view-dados input,
+div#empresa-view-dados textarea {
+  font-size: 1.6rem;
+}
+
+div#empresa-view-dados label {
+  text-wrap: nowrap;
+}

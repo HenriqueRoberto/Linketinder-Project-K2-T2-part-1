@@ -1,0 +1,103 @@
+.foto-candidato,
+.foto-empresa {
+  width: 100px;
+  height: 100px;
+  background: #ccc;
+
+  margin: 0 auto 10px;
+
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  cursor: pointer;
+}
+
+.foto-candidato {
+  border-radius: 50%;
+}
+
+.foto-empresa {
+  border-radius: 2rem;
+}
+
+.foto-candidato img,
+.foto-empresa img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.dados-candidato,
+.dados-empresa {
+  gap: 1rem;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  padding: 2rem 0;
+  width: 100%;
+}
+
+.group-dados-candidato {
+  width: 80%;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 2rem;
+}
+
+.group-dados-empresa {
+  width: 90%;
+  display: flex;
+  flex-direction: column;
+}
+
+.dados-candidato label,
+.dados-empresa label {
+  display: flex;
+  align-self: flex-start;
+  color: rgb(66, 66, 66);
+  font-weight: 700;
+  font-size: 1.8rem;
+  margin-bottom: 0.5rem;
+  margin-left: 2.5%;
+}
+
+/* inputs iguais form-candidato */
+.dados-candidato input,
+.dados-candidato textarea,
+.dados-empresa input,
+.dados-empresa textarea {
+  width: 95%;
+  padding: 0.5rem 1rem;
+  border: 0.1rem solid var(--border-grey);
+  font-size: 1.6rem;
+  box-sizing: border-box;
+}
+
+.dados-candidato input {
+  border-radius: 3.2rem;
+}
+
+.dados-empresa input {
+  border-radius: 1rem;
+}
+
+.dados-candidato textarea,
+.dados-empresa textarea {
+  border-radius: 1rem;
+  resize: none;
+  height: 10vh;
+}
+
+/* SENHA COM BOTÃO */
+.input-senha {
+  width: 95%;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.input-senha input {
+  width: 100%;
+}

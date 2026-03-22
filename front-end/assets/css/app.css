@@ -1,0 +1,130 @@
+@property --split {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 53%;
+}
+
+@property --angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+@property --mix {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 0%;
+}
+
+body {
+  height: 100vh;
+  margin: 0;
+
+  --split: 53%;
+  --angle: 90deg;
+  --mix: 0%;
+
+  background: linear-gradient(
+    var(--angle),
+    var(--purple) calc(var(--split) - var(--mix)),
+    var(--orange) calc(var(--split) + var(--mix))
+  );
+
+  animation:
+    splitAnim 1.5s ease forwards,
+    rotateAnim 1.5s ease forwards 1.5s,
+    blendAnim 2s ease forwards 3s;
+}
+
+/* 1️⃣ 53 → 50 */
+@keyframes splitAnim {
+  to {
+    --split: 50%;
+  }
+}
+
+/* 2️⃣ gira */
+@keyframes rotateAnim {
+  to {
+    --angle: 45deg;
+  }
+}
+
+/* 3️⃣ vira degradê de verdade */
+@keyframes blendAnim {
+  from {
+    --mix: 0%;
+  }
+  to {
+    --mix: 30%;
+  }
+}
+
+div.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 3rem;
+  width: 100%;
+}
+
+main {
+  height: 90vh;
+  width: 50%;
+  background-color: rgba(202, 202, 202, 0.952);
+  box-shadow: 0.1rem 0.2rem 2rem -0.6rem #00000099;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+img#log-out {
+  position: absolute;
+  top: 5%;
+  right: 27%;
+  width: 3rem;
+  height: 3rem;
+  cursor: pointer;
+}
+
+@media screen and (max-width: 1024px) and (min-width: 769px) {
+  main {
+    width: 70%;
+  }
+
+  img#log-out {
+    right: 19%;
+  }
+}
+
+@media screen and (max-width: 768px) and (min-width: 426px) {
+  div.container {
+    padding: 1rem;
+  }
+
+  main {
+    width: 95%;
+    height: 95vh;
+  }
+
+  img#log-out {
+    top: 3%;
+    right: 5%;
+  }
+}
+
+@media screen and (max-width: 425px) {
+  div.container {
+    padding: 0;
+  }
+
+  main {
+    width: 100%;
+    padding: 0.5rem;
+    height: 100vh;
+  }
+
+  img#log-out {
+    right: 5%;
+  }
+}
