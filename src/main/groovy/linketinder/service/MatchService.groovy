@@ -2,6 +2,7 @@ package linketinder.service
 
 import linketinder.model.Candidato
 import linketinder.model.Empresa
+import linketinder.model.Match
 import linketinder.model.Vaga
 
 class MatchService {
@@ -11,6 +12,9 @@ class MatchService {
 
     // Likes da empresa em candidatos: [idEmpresa: Set<idCandidato>]
     private static Map<Integer, Set<Integer>> likesEmpresas = [:]
+
+    // Matches armazenados
+    private static List<Match> matches = []
 
     static void registrarLikeCandidato(int idCandidato, int idVaga) {
         if (!likesCandidatos[idCandidato]) likesCandidatos[idCandidato] = [] as Set
@@ -22,7 +26,7 @@ class MatchService {
         likesEmpresas[idEmpresa].add(idCandidato)
     }
 
-    // Match ocorre se: empresa curtiu o candidato E candidato curtiu uma vaga que ainda existe dessa empresa
+    // Verifica match e armazena para todas as vagas curtidas da empresa
     static boolean houveMatch(int idCandidato, int idEmpresa) {
         boolean empresaCurtiu = likesEmpresas[idEmpresa]?.contains(idCandidato) ?: false
         if (!empresaCurtiu) return false
@@ -32,34 +36,40 @@ class MatchService {
 
         Set<Integer> vagasCurtidas = likesCandidatos[idCandidato] ?: ([] as Set)
 
-        // Verifica se alguma vaga curtida ainda existe na empresa
-        return empresa.vagas.any { vaga -> vagasCurtidas.contains(vaga.id) }
+        // Registra match para cada vaga da empresa que o candidato curtiu
+        List<Vaga> vagasComMatch = empresa.vagas.findAll { vaga -> vagasCurtidas.contains(vaga.id) }
+        if (vagasComMatch.isEmpty()) return false
+
+        vagasComMatch.each { vaga ->
+            boolean jaExiste = matches.any { it.idCandidato == idCandidato && it.idVaga == vaga.id }
+            if (!jaExiste) {
+                matches.add(new Match(idCandidato, vaga.id))
+            }
+        }
+
+        return true
     }
 
     // Retorna lista de maps com [vaga: Vaga, empresa: Empresa]
+    // Só inclui vagas que ainda existem
     static List<Map> obterMatchesCandidato(int idCandidato) {
         List<Map> resultado = []
 
-        Set<Integer> vagasCurtidas = likesCandidatos[idCandidato] ?: ([] as Set)
+        matches.findAll { it.idCandidato == idCandidato }.each { match ->
+            Empresa empresa = EmpresaService.listar().find { e -> e.vagas.any { v -> v.id == match.idVaga } }
+            if (empresa == null) return  // Vaga excluída — match some
 
-        vagasCurtidas.each { idVaga ->
-            // Busca a vaga pelo id em todas as empresas
-            Empresa empresa = EmpresaService.listar().find { e -> e.vagas.any { v -> v.id == idVaga } }
-            if (empresa == null) return  // Vaga não existe mais — match some
-
-            Vaga vaga = empresa.vagas.find { v -> v.id == idVaga }
+            Vaga vaga = empresa.vagas.find { v -> v.id == match.idVaga }
             if (vaga == null) return
 
-            // Só inclui se a empresa também curtiu o candidato
-            if (likesEmpresas[empresa.id]?.contains(idCandidato)) {
-                resultado << [vaga: vaga, empresa: empresa]
-            }
+            resultado << [vaga: vaga, empresa: empresa]
         }
 
         return resultado
     }
 
     // Retorna lista de maps com [vaga: Vaga, candidatos: List<Candidato>]
+    // Só considera vagas que ainda existem
     static List<Map> obterMatchesEmpresa(int idEmpresa) {
         List<Map> resultado = []
 
@@ -67,10 +77,10 @@ class MatchService {
         if (empresa == null) return resultado
 
         empresa.vagas.each { vaga ->
-            List<Candidato> candidatosComMatch = CandidatoService.listar().findAll { candidato ->
-                likesEmpresas[idEmpresa]?.contains(candidato.id) &&
-                        likesCandidatos[candidato.id]?.contains(vaga.id)
-            }
+            List<Candidato> candidatosComMatch = matches
+                    .findAll { it.idVaga == vaga.id }
+                    .collect { match -> CandidatoService.listar().find { c -> c.id == match.idCandidato } }
+                    .findAll { it != null }
 
             if (!candidatosComMatch.isEmpty()) {
                 resultado << [vaga: vaga, candidatos: candidatosComMatch]
