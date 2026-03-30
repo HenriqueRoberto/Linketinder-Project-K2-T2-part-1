@@ -2,6 +2,9 @@ package linketinder.model
 
 class PessoaFisica implements Pessoa {
 
+    private static int proximoId = 1
+
+    int id
     String nome
     String email
     String cpf
@@ -13,6 +16,7 @@ class PessoaFisica implements Pessoa {
     String senha
 
     PessoaFisica(String nome, String email, String cpf, int idade, String estado, String cep, String descricao, List<String> competencias, String senha) {
+        this.id = proximoId++
         this.nome = nome
         this.email = email
         this.cpf = cpf

@@ -58,7 +58,7 @@ class AppController {
                 case 3: gerenciarCompetencias(); break
                 case 4: explorarVagas(); break
                 case 5:
-                    def matches = MatchService.obterMatchesCandidato(usuarioLogado.email)
+                    def matches = MatchService.obterMatchesCandidato(usuarioLogado.id)
                     MenuView.exibirMatchesCandidato(matches)
                     break
                 case 0:
@@ -105,6 +105,7 @@ class AppController {
         println "Sucesso: Dados atualizados!"
     }
 
+    // Gerencia competências do candidato logado (CRUD completo: adicionar, editar, excluir, listar)
     private static void gerenciarCompetencias() {
         while (true) {
             List<String> comps = usuarioLogado.competencias
@@ -172,6 +173,7 @@ class AppController {
         }
     }
 
+    // Candidato explora vagas uma por uma com like/dislike
     private static void explorarVagas() {
         List<Vaga> vagas = EmpresaService.listarTodasVagas()
 
@@ -187,10 +189,10 @@ class AppController {
 
             if (acao == "L") {
                 // Registra o like pelo id único da vaga — sem depender de índice
-                MatchService.registrarLikeCandidato(usuarioLogado.email, vaga.id)
+                MatchService.registrarLikeCandidato(usuarioLogado.id, vaga.id)
 
                 Empresa empresa = EmpresaService.buscarPorId(vaga.idEmpresa)
-                if (empresa && MatchService.houveMatch(usuarioLogado.email, empresa.email)) {
+                if (empresa && MatchService.houveMatch(usuarioLogado.id, empresa.id)) {
                     println "MATCH com a empresa " + empresa.nome + "!"
                 }
             } else if (acao == "S") break
@@ -212,7 +214,7 @@ class AppController {
                 case 2: editarDadosEmpresa(); break
                 case 3: explorarCandidatos(); break
                 case 4:
-                    def matches = MatchService.obterMatchesEmpresa(usuarioLogado.email)
+                    def matches = MatchService.obterMatchesEmpresa(usuarioLogado.id)
                     MenuView.exibirMatchesEmpresa(matches)
                     break
                 case 5: fluxoGerenciarVagas(); break
@@ -265,14 +267,15 @@ class AppController {
             String acao = scanner.nextLine().toUpperCase()
 
             if (acao == "L") {
-                MatchService.registrarLikeEmpresa(usuarioLogado.email, candidato.email)
-                if (MatchService.houveMatch(candidato.email, usuarioLogado.email)) {
+                MatchService.registrarLikeEmpresa(usuarioLogado.id, candidato.id)
+                if (MatchService.houveMatch(candidato.id, usuarioLogado.id)) {
                     println "MATCH!"
                 }
             } else if (acao == "S") break
         }
     }
 
+    // Fluxo de gerenciamento de vagas da empresa
     private static void fluxoGerenciarVagas() {
         while (true) {
             MenuView.menuGerenciarVagas()
@@ -351,6 +354,7 @@ class AppController {
         String novoLocal   = local.isEmpty()   ? vaga.localizacao : local
         String novoRemun   = remun.isEmpty()   ? vaga.remuneracao : remun
 
+        // Mantém as competências existentes e permite gerenciá-las dentro da vaga
         List<String> competencias = new ArrayList<>(vaga.competencias)
         gerenciarCompetenciasVaga(competencias)
 

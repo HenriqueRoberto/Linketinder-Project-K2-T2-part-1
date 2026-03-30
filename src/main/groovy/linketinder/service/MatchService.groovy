@@ -6,39 +6,41 @@ import linketinder.model.Vaga
 
 class MatchService {
 
-    private static Map<String, Set<Integer>> likesCandidatos = [:]
+    // Likes do candidato em vagas: [idCandidato: Set<idVaga>]
+    private static Map<Integer, Set<Integer>> likesCandidatos = [:]
 
-    private static Map<String, Set<String>> likesEmpresas = [:]
+    // Likes da empresa em candidatos: [idEmpresa: Set<idCandidato>]
+    private static Map<Integer, Set<Integer>> likesEmpresas = [:]
 
-    // Candidato dá like em uma vaga pelo id da vaga
-    static void registrarLikeCandidato(String emailCandidato, int idVaga) {
-        if (!likesCandidatos[emailCandidato]) likesCandidatos[emailCandidato] = [] as Set
-        likesCandidatos[emailCandidato].add(idVaga)
+    static void registrarLikeCandidato(int idCandidato, int idVaga) {
+        if (!likesCandidatos[idCandidato]) likesCandidatos[idCandidato] = [] as Set
+        likesCandidatos[idCandidato].add(idVaga)
     }
 
-    static void registrarLikeEmpresa(String emailEmpresa, String emailCandidato) {
-        if (!likesEmpresas[emailEmpresa]) likesEmpresas[emailEmpresa] = [] as Set
-        likesEmpresas[emailEmpresa].add(emailCandidato)
+    static void registrarLikeEmpresa(int idEmpresa, int idCandidato) {
+        if (!likesEmpresas[idEmpresa]) likesEmpresas[idEmpresa] = [] as Set
+        likesEmpresas[idEmpresa].add(idCandidato)
     }
 
-    static boolean houveMatch(String emailCandidato, String emailEmpresa) {
-        boolean empresaCurtiu = likesEmpresas[emailEmpresa]?.contains(emailCandidato) ?: false
+    // Match ocorre se: empresa curtiu o candidato E candidato curtiu uma vaga que ainda existe dessa empresa
+    static boolean houveMatch(int idCandidato, int idEmpresa) {
+        boolean empresaCurtiu = likesEmpresas[idEmpresa]?.contains(idCandidato) ?: false
         if (!empresaCurtiu) return false
 
-        Empresa empresa = EmpresaService.buscarPorEmail(emailEmpresa)
+        Empresa empresa = EmpresaService.buscarPorId(idEmpresa)
         if (empresa == null) return false
 
-        Set<Integer> vagasCurtidas = likesCandidatos[emailCandidato] ?: ([] as Set)
+        Set<Integer> vagasCurtidas = likesCandidatos[idCandidato] ?: ([] as Set)
 
         // Verifica se alguma vaga curtida ainda existe na empresa
         return empresa.vagas.any { vaga -> vagasCurtidas.contains(vaga.id) }
     }
 
     // Retorna lista de maps com [vaga: Vaga, empresa: Empresa]
-    static List<Map> obterMatchesCandidato(String emailCandidato) {
+    static List<Map> obterMatchesCandidato(int idCandidato) {
         List<Map> resultado = []
 
-        Set<Integer> vagasCurtidas = likesCandidatos[emailCandidato] ?: ([] as Set)
+        Set<Integer> vagasCurtidas = likesCandidatos[idCandidato] ?: ([] as Set)
 
         vagasCurtidas.each { idVaga ->
             // Busca a vaga pelo id em todas as empresas
@@ -49,7 +51,7 @@ class MatchService {
             if (vaga == null) return
 
             // Só inclui se a empresa também curtiu o candidato
-            if (likesEmpresas[empresa.email]?.contains(emailCandidato)) {
+            if (likesEmpresas[empresa.id]?.contains(idCandidato)) {
                 resultado << [vaga: vaga, empresa: empresa]
             }
         }
@@ -57,16 +59,17 @@ class MatchService {
         return resultado
     }
 
-    static List<Map> obterMatchesEmpresa(String emailEmpresa) {
+    // Retorna lista de maps com [vaga: Vaga, candidatos: List<Candidato>]
+    static List<Map> obterMatchesEmpresa(int idEmpresa) {
         List<Map> resultado = []
 
-        Empresa empresa = EmpresaService.buscarPorEmail(emailEmpresa)
+        Empresa empresa = EmpresaService.buscarPorId(idEmpresa)
         if (empresa == null) return resultado
 
         empresa.vagas.each { vaga ->
             List<Candidato> candidatosComMatch = CandidatoService.listar().findAll { candidato ->
-                likesEmpresas[emailEmpresa]?.contains(candidato.email) &&
-                        likesCandidatos[candidato.email]?.contains(vaga.id)
+                likesEmpresas[idEmpresa]?.contains(candidato.id) &&
+                        likesCandidatos[candidato.id]?.contains(vaga.id)
             }
 
             if (!candidatosComMatch.isEmpty()) {
