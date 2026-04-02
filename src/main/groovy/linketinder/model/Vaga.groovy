@@ -2,8 +2,6 @@ package linketinder.model
 
 class Vaga {
 
-    private static int proximoId = 1
-
     int id
     String nome
     String descricao
@@ -14,7 +12,6 @@ class Vaga {
     int idEmpresa
 
     Vaga(String nome, String descricao, String horario, String localizacao, String remuneracao, List<Competencia> competencias, int idEmpresa) {
-        this.id = proximoId++
         this.nome = nome
         this.descricao = descricao
         this.horario = horario
