@@ -1,81 +1,66 @@
-type FormType = "login" | "empresa" | "candidato";
+type TipoFormulario = "login" | "empresa" | "candidato";
 
-class FormController {
-  private login: HTMLFormElement;
-  private empresa: HTMLFormElement;
-  private candidato: HTMLFormElement;
+class AlternadorDeFormularios {
+  private formLogin: HTMLFormElement;
+  private formEmpresa: HTMLFormElement;
+  private formCandidato: HTMLFormElement;
 
   constructor() {
-    this.login = this.getElement<HTMLFormElement>("form-login");
-    this.empresa = this.getElement<HTMLFormElement>("form-empresa");
-    this.candidato = this.getElement<HTMLFormElement>("form-candidato");
+    this.formLogin = this.obterElemento<HTMLFormElement>("form-login");
+    this.formEmpresa = this.obterElemento<HTMLFormElement>("form-empresa");
+    this.formCandidato = this.obterElemento<HTMLFormElement>("form-candidato");
   }
 
-  private getElement<T extends HTMLElement>(id: string): T {
-    const element: HTMLElement | null = document.getElementById(id);
-
-    if (!element) {
-      throw new Error(`Elemento #${id} não encontrado`);
-    }
-
-    return element as T;
+  exibir(tipo: TipoFormulario): void {
+    this.ocultarTodos();
+    if (tipo === "login") this.formLogin.classList.remove("hidden");
+    if (tipo === "empresa") this.formEmpresa.classList.remove("hidden");
+    if (tipo === "candidato") this.formCandidato.classList.remove("hidden");
   }
 
-  public show(type: FormType): void {
-    this.hideAll();
-
-    if (type === "login") this.login.classList.remove("hidden");
-    if (type === "empresa") this.empresa.classList.remove("hidden");
-    if (type === "candidato") this.candidato.classList.remove("hidden");
+  private ocultarTodos(): void {
+    this.formLogin.classList.add("hidden");
+    this.formEmpresa.classList.add("hidden");
+    this.formCandidato.classList.add("hidden");
   }
 
-  private hideAll(): void {
-    this.login.classList.add("hidden");
-    this.empresa.classList.add("hidden");
-    this.candidato.classList.add("hidden");
+  private obterElemento<T extends HTMLElement>(id: string): T {
+    const elemento = document.getElementById(id);
+    if (!elemento) throw new Error(`Elemento #${id} não encontrado`);
+    return elemento as T;
   }
 }
 
 document.addEventListener("DOMContentLoaded", (): void => {
-  const controller: FormController = new FormController();
+  const alternador = new AlternadorDeFormularios();
 
-  const linkEmpresa: HTMLAnchorElement = document.getElementById(
+  const linkEmpresa = document.getElementById(
     "link-empresa",
   ) as HTMLAnchorElement;
-  const linkCandidato: HTMLAnchorElement = document.getElementById(
+  const linkCandidato = document.getElementById(
     "link-candidato",
   ) as HTMLAnchorElement;
-
-  const backEmpresa: HTMLButtonElement = document.getElementById(
+  const voltarEmpresa = document.getElementById(
     "back-login-empresa",
   ) as HTMLButtonElement;
-  const backCandidato: HTMLButtonElement = document.getElementById(
+  const voltarCandidato = document.getElementById(
     "back-login-candidato",
   ) as HTMLButtonElement;
 
-  if (!linkEmpresa || !linkCandidato || !backEmpresa || !backCandidato) {
-    throw new Error("Elementos não encontrados");
+  if (!linkEmpresa || !linkCandidato || !voltarEmpresa || !voltarCandidato) {
+    throw new Error("Elementos de navegação não encontrados");
   }
 
-  linkEmpresa.addEventListener("click", (e: MouseEvent): void => {
+  linkEmpresa.addEventListener("click", (e) => {
     e.preventDefault();
-    controller.show("empresa");
+    alternador.exibir("empresa");
   });
-
-  linkCandidato.addEventListener("click", (e: MouseEvent): void => {
+  linkCandidato.addEventListener("click", (e) => {
     e.preventDefault();
-    controller.show("candidato");
+    alternador.exibir("candidato");
   });
+  voltarEmpresa.addEventListener("click", () => alternador.exibir("login"));
+  voltarCandidato.addEventListener("click", () => alternador.exibir("login"));
 
-  backEmpresa.addEventListener("click", (): void => {
-    controller.show("login");
-  });
-
-  backCandidato.addEventListener("click", (): void => {
-    controller.show("login");
-  });
-
-  document.addEventListener("goToLogin", () => {
-    controller.show("login");
-  });
+  document.addEventListener("goToLogin", () => alternador.exibir("login"));
 });
