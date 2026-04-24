@@ -1,54 +1,54 @@
 import { StorageService } from "../services/StorageService.js";
 
 document.addEventListener("DOMContentLoaded", () => {
-  const user = StorageService.getCurrentUser();
+  const usuario = StorageService.obterUsuarioAtual();
 
-  const hideAll = (selectors: string[]) => {
-    selectors.forEach((selector) => {
-      document.querySelector(selector)?.classList.add("hidden");
+  const ocultarTodas = (seletores: string[]) => {
+    seletores.forEach((seletor) => {
+      document.querySelector(seletor)?.classList.add("hidden");
     });
   };
 
-  const setActive = (btnId: string) => {
+  const ativarBotao = (btnId: string) => {
     document.querySelectorAll(".menu-nav__link").forEach((el) => {
       el.classList.remove("active");
     });
     document.getElementById(btnId)?.classList.add("active");
   };
 
-  const bind = (btnId: string, target: string, sections: string[]) => {
+  const vincularNavegacao = (btnId: string, alvo: string, secoes: string[]) => {
     const btn = document.getElementById(btnId);
     if (!btn) return;
 
     btn.addEventListener("click", (e) => {
       e.preventDefault();
-      hideAll(sections);
-      document.querySelector(target)?.classList.remove("hidden");
-      setActive(btnId);
+      ocultarTodas(secoes);
+      document.querySelector(alvo)?.classList.remove("hidden");
+      ativarBotao(btnId);
     });
   };
 
-  if (user.tipo === "candidato") {
-    const sections = ["#perfil-candidato", "#matches", ".match-swipe"];
+  if (usuario.tipo === "candidato") {
+    const secoes = ["#perfil-candidato", "#matches", ".match-swipe"];
 
-    bind("nav-candidato-perfil", "#perfil-candidato", sections);
-    bind("nav-candidato-matches", "#matches", sections);
-    bind("nav-candidato-vagas", ".match-swipe", sections);
+    vincularNavegacao("nav-candidato-perfil", "#perfil-candidato", secoes);
+    vincularNavegacao("nav-candidato-matches", "#matches", secoes);
+    vincularNavegacao("nav-candidato-vagas", ".match-swipe", secoes);
 
-    setActive("nav-candidato-perfil");
+    ativarBotao("nav-candidato-perfil");
   } else {
-    const sections = [
+    const secoes = [
       ".match-swipe",
       "#matches",
       "#vagas-empresa",
       "#perfil-empresa",
     ];
 
-    bind("nav-empresa-vagas-match", ".match-swipe", sections);
-    bind("nav-empresa-matches", "#matches", sections);
-    bind("nav-empresa-vagas", "#vagas-empresa", sections);
-    bind("nav-empresa-perfil", "#perfil-empresa", sections);
+    vincularNavegacao("nav-empresa-vagas-match", ".match-swipe", secoes);
+    vincularNavegacao("nav-empresa-matches", "#matches", secoes);
+    vincularNavegacao("nav-empresa-vagas", "#vagas-empresa", secoes);
+    vincularNavegacao("nav-empresa-perfil", "#perfil-empresa", secoes);
 
-    setActive("nav-empresa-perfil");
+    ativarBotao("nav-empresa-perfil");
   }
 });
