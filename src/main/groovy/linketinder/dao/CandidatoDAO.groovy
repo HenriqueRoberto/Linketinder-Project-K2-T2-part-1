@@ -6,9 +6,10 @@ import java.sql.Connection
 import java.sql.PreparedStatement
 import java.sql.ResultSet
 
-class CandidatoDAO {
+class CandidatoDAO implements ICandidatoDAO {
 
-    static List<Candidato> listar() {
+    @Override
+    List<Candidato> listar() {
         List<Candidato> candidatos = []
         Connection conn = ConexaoBanco.obterConexao()
 
@@ -25,7 +26,21 @@ class CandidatoDAO {
         return candidatos
     }
 
-    static int inserir(Candidato candidato) {
+    @Override
+    boolean existeEmail(String email) {
+        Connection conn = ConexaoBanco.obterConexao()
+        PreparedStatement stmt = conn.prepareStatement(
+                "SELECT 1 FROM candidatos WHERE LOWER(email) = LOWER(?)"
+        )
+        stmt.setString(1, email)
+        ResultSet rs = stmt.executeQuery()
+        boolean existe = rs.next()
+        rs.close(); stmt.close(); conn.close()
+        return existe
+    }
+
+    @Override
+    int inserir(Candidato candidato) {
         Connection conn = ConexaoBanco.obterConexao()
 
         String sql = """
@@ -41,7 +56,8 @@ class CandidatoDAO {
         return idGerado
     }
 
-    static void atualizar(Candidato candidato) {
+    @Override
+    void atualizar(Candidato candidato) {
         Connection conn = ConexaoBanco.obterConexao()
 
         String sql = """
@@ -57,7 +73,8 @@ class CandidatoDAO {
         stmt.close(); conn.close()
     }
 
-    static void deletar(int id) {
+    @Override
+    void deletar(int id) {
         Connection conn = ConexaoBanco.obterConexao()
         PreparedStatement stmt = conn.prepareStatement("DELETE FROM candidatos WHERE id = ?")
         stmt.setInt(1, id)
@@ -65,7 +82,8 @@ class CandidatoDAO {
         stmt.close(); conn.close()
     }
 
-    static List<Competencia> buscarCompetenciasDoCandidato(Connection conn, int idCandidato) {
+    @Override
+    List<Competencia> buscarCompetenciasDoCandidato(Connection conn, int idCandidato) {
         List<Competencia> competencias = []
 
         String sql = """
