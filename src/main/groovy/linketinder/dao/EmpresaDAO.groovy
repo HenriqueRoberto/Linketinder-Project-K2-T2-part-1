@@ -5,9 +5,10 @@ import java.sql.Connection
 import java.sql.PreparedStatement
 import java.sql.ResultSet
 
-class EmpresaDAO {
+class EmpresaDAO implements IEmpresaDAO {
 
-    static List<Empresa> listar() {
+    @Override
+    List<Empresa> listar() {
         List<Empresa> empresas = []
         Connection conn = ConexaoBanco.obterConexao()
 
@@ -22,7 +23,21 @@ class EmpresaDAO {
         return empresas
     }
 
-    static int inserir(Empresa empresa) {
+    @Override
+    boolean existeEmail(String email) {
+        Connection conn = ConexaoBanco.obterConexao()
+        PreparedStatement stmt = conn.prepareStatement(
+                "SELECT 1 FROM empresas WHERE LOWER(email) = LOWER(?)"
+        )
+        stmt.setString(1, email)
+        ResultSet rs = stmt.executeQuery()
+        boolean existe = rs.next()
+        rs.close(); stmt.close(); conn.close()
+        return existe
+    }
+
+    @Override
+    int inserir(Empresa empresa) {
         Connection conn = ConexaoBanco.obterConexao()
 
         String sql = """
@@ -38,7 +53,8 @@ class EmpresaDAO {
         return idGerado
     }
 
-    static void atualizar(Empresa empresa) {
+    @Override
+    void atualizar(Empresa empresa) {
         Connection conn = ConexaoBanco.obterConexao()
 
         String sql = """
@@ -54,7 +70,8 @@ class EmpresaDAO {
         stmt.close(); conn.close()
     }
 
-    static void deletar(int id) {
+    @Override
+    void deletar(int id) {
         Connection conn = ConexaoBanco.obterConexao()
         PreparedStatement stmt = conn.prepareStatement("DELETE FROM empresas WHERE id = ?")
         stmt.setInt(1, id)
@@ -62,11 +79,13 @@ class EmpresaDAO {
         stmt.close(); conn.close()
     }
 
-    static Empresa buscarPorId(int id) {
+    @Override
+    Empresa buscarPorId(int id) {
         return buscarPorCriterio("SELECT * FROM empresas WHERE id = ?") { stmt -> stmt.setInt(1, id) }
     }
 
-    static Empresa buscarPorEmail(String email) {
+    @Override
+    Empresa buscarPorEmail(String email) {
         return buscarPorCriterio("SELECT * FROM empresas WHERE LOWER(email) = LOWER(?)") { stmt -> stmt.setString(1, email) }
     }
 
