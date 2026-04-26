@@ -4,6 +4,6 @@ import linketinder.controller.AppController
 
 class Main {
     static void main(String[] args) {
-        AppController.iniciar()
+        AppController.criar().iniciar()
     }
 }
