@@ -2,21 +2,52 @@ package linketinder.service
 
 import spock.lang.Specification
 import linketinder.model.Empresa
+import linketinder.dao.IEmpresaDAO
+import linketinder.dao.IVagaDAO
+import linketinder.dao.ICompetenciaDAO
 
 class EmpresaServiceSpec extends Specification {
 
+    IEmpresaDAO mockEmpresaDAO
+    IVagaDAO mockVagaDAO
+    ICompetenciaDAO mockCompetenciaDAO
+    EmpresaService service
+
+    def setup() {
+        mockEmpresaDAO    = Mock(IEmpresaDAO)
+        mockVagaDAO       = Mock(IVagaDAO)
+        mockCompetenciaDAO = Mock(ICompetenciaDAO)
+        service = new EmpresaService(mockEmpresaDAO, mockVagaDAO, mockCompetenciaDAO)
+    }
+
     def "Deve lançar exceção ao cadastrar empresa com e-mail duplicado"() {
-        given: "Uma empresa existente"
-        def empresaExistente = new Empresa("TechSul", "rh@techsul.com", "11111111000101", "Brasil", "RS", "90000-100", "Software sob demanda", "corp123")
+        given: "O DAO informa que o e-mail já existe"
+        mockEmpresaDAO.existeEmail("rh@techsul.com") >> true
 
         and: "Uma nova empresa com o mesmo e-mail"
-        def novaEmpresa = new Empresa("OutraEmpresa", "rh@techsul.com", "22222222000199", "Brasil", "SC", "88000-000", "Outra", "pass456")
+        def empresa = new Empresa("OutraEmpresa", "rh@techsul.com", "22222222000199", "Brasil", "SC", "88000-000", "Outra", "pass456")
 
-        when: "Verificamos se o e-mail está duplicado"
-        boolean emailJaCadastrado = [empresaExistente].any { it.email.equalsIgnoreCase(novaEmpresa.email) }
+        when: "Tentamos cadastrar"
+        service.cadastrar(empresa)
 
-        then: "O e-mail deve ser detectado como duplicado"
-        emailJaCadastrado == true
+        then: "Deve lançar IllegalArgumentException"
+        thrown(IllegalArgumentException)
+    }
+
+    def "Deve cadastrar empresa com e-mail novo"() {
+        given: "O DAO informa que o e-mail não existe"
+        mockEmpresaDAO.existeEmail("novo@empresa.com") >> false
+        mockEmpresaDAO.inserir(_) >> 5
+
+        and: "Uma empresa nova"
+        def empresa = new Empresa("Nova", "novo@empresa.com", "33333333000100", "Brasil", "SP", "01000-000", "Desc", "senha")
+
+        when: "Cadastramos"
+        service.cadastrar(empresa)
+
+        then: "O id deve ser preenchido"
+        empresa.id == 5
+        1 * mockEmpresaDAO.inserir(empresa)
     }
 
     def "Deve criar empresa com os dados fornecidos corretamente"() {
