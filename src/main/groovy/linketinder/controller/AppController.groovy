@@ -1,14 +1,53 @@
 package linketinder.controller
 
+import linketinder.dao.CandidatoDAO
+import linketinder.dao.CompetenciaDAO
+import linketinder.dao.EmpresaDAO
+import linketinder.dao.VagaDAO
 import linketinder.service.*
 import linketinder.model.*
 import linketinder.view.MenuView
 
 class AppController {
 
-    private static Object usuarioLogado = null
+    private final CandidatoService candidatoService
+    private final EmpresaService empresaService
+    private final CompetenciaService competenciaService
+    private final MatchService matchService
+    private final LoginService loginService
 
-    static void iniciar() {
+    private Object usuarioLogado = null
+
+    // Construtor principal com injeção de dependência
+    AppController(CandidatoService candidatoService,
+                  EmpresaService empresaService,
+                  CompetenciaService competenciaService,
+                  MatchService matchService,
+                  LoginService loginService) {
+        this.candidatoService   = candidatoService
+        this.empresaService     = empresaService
+        this.competenciaService = competenciaService
+        this.matchService       = matchService
+        this.loginService       = loginService
+    }
+
+    // Factory method: monta todas as dependências reais
+    static AppController criar() {
+        def candidatoDAO    = new CandidatoDAO()
+        def empresaDAO      = new EmpresaDAO()
+        def competenciaDAO  = new CompetenciaDAO()
+        def vagaDAO         = new VagaDAO()
+
+        def candidatoService   = new CandidatoService(candidatoDAO)
+        def empresaService     = new EmpresaService(empresaDAO, vagaDAO, competenciaDAO)
+        def competenciaService = new CompetenciaService(competenciaDAO)
+        def matchService       = new MatchService(empresaService, candidatoService)
+        def loginService       = new LoginService(candidatoService, empresaService)
+
+        return new AppController(candidatoService, empresaService, competenciaService, matchService, loginService)
+    }
+
+    void iniciar() {
         while (true) {
             MenuView.mostrarMenuInicial()
             switch (MenuView.lerOpcao()) {
@@ -20,9 +59,9 @@ class AppController {
         }
     }
 
-    private static void fluxoLogin() {
+    private void fluxoLogin() {
         def credenciais = MenuView.lerCredenciaisLogin()
-        usuarioLogado = LoginService.realizarLogin(credenciais.email, credenciais.senha)
+        usuarioLogado = loginService.realizarLogin(credenciais.email, credenciais.senha)
 
         if (usuarioLogado instanceof Candidato)  fluxoCandidato()
         else if (usuarioLogado instanceof Empresa) fluxoEmpresa()
@@ -31,27 +70,27 @@ class AppController {
 
     // ---- FLUXO CANDIDATO ----
 
-    private static void fluxoCandidato() {
+    private void fluxoCandidato() {
         while (usuarioLogado != null) {
             MenuView.menuCandidato(usuarioLogado.nome)
             switch (MenuView.lerOpcao()) {
                 case 1: MenuView.exibirPerfilLogado(usuarioLogado); break
                 case 2: editarDadosCandidato(); break
-                case 3: gerenciarCompetencias(usuarioLogado); break
+                case 3: gerenciarCompetencias(usuarioLogado as Candidato); break
                 case 4: explorarVagas(); break
-                case 5: MenuView.exibirMatchesCandidato(MatchService.obterMatchesCandidato(usuarioLogado.id)); break
+                case 5: MenuView.exibirMatchesCandidato(matchService.obterMatchesCandidato(usuarioLogado.id)); break
                 case 0: usuarioLogado = null; break
             }
         }
     }
 
-    private static void editarDadosCandidato() {
+    private void editarDadosCandidato() {
         def dados = MenuView.lerEdicaoCandidato(usuarioLogado as Candidato)
-        CandidatoService.aplicarEdicao(usuarioLogado as Candidato, dados)
+        candidatoService.aplicarEdicao(usuarioLogado as Candidato, dados)
         MenuView.exibirMensagem("Sucesso: Dados atualizados!")
     }
 
-    private static void gerenciarCompetencias(Candidato candidato) {
+    private void gerenciarCompetencias(Candidato candidato) {
         while (true) {
             MenuView.menuCompetencias()
             switch (MenuView.lerOpcao()) {
@@ -64,33 +103,33 @@ class AppController {
         }
     }
 
-    private static void adicionarCompetencia(Candidato candidato) {
+    private void adicionarCompetencia(Candidato candidato) {
         String entrada = MenuView.lerNovaCompetencia()
         if (entrada.isEmpty()) return
-        CompetenciaService.adicionarAoCandidato(candidato, entrada)
+        competenciaService.adicionarAoCandidato(candidato, entrada)
         MenuView.exibirMensagem("Sucesso: '${entrada}' adicionada!")
     }
 
-    private static void editarCompetencia(Candidato candidato) {
+    private void editarCompetencia(Candidato candidato) {
         if (candidato.competencias.isEmpty()) { MenuView.exibirMensagem("Nenhuma competência para editar."); return }
         int indice = MenuView.lerNumeroCompetencia()
         if (indiceInvalido(indice, candidato.competencias.size())) return
         String novoNome = MenuView.lerEdicaoCompetencia(candidato.competencias[indice].nome)
         if (novoNome.isEmpty()) return
-        CompetenciaService.editarDoCandidato(candidato, indice, novoNome)
+        competenciaService.editarDoCandidato(candidato, indice, novoNome)
         MenuView.exibirMensagem("Sucesso: competência atualizada!")
     }
 
-    private static void excluirCompetencia(Candidato candidato) {
+    private void excluirCompetencia(Candidato candidato) {
         if (candidato.competencias.isEmpty()) { MenuView.exibirMensagem("Nenhuma competência para excluir."); return }
         int indice = MenuView.lerNumeroCompetencia()
         if (indiceInvalido(indice, candidato.competencias.size())) return
-        String removida = CompetenciaService.removerDoCandidato(candidato, indice)
+        String removida = competenciaService.removerDoCandidato(candidato, indice)
         MenuView.exibirMensagem("Sucesso: '${removida}' removida!")
     }
 
-    private static void explorarVagas() {
-        List<Vaga> vagas = EmpresaService.listarTodasVagas()
+    private void explorarVagas() {
+        List<Vaga> vagas = empresaService.listarTodasVagas()
         if (vagas.isEmpty()) { MenuView.exibirMensagem("\nNenhuma vaga disponível no momento."); return }
 
         for (vaga in vagas) {
@@ -99,9 +138,9 @@ class AppController {
             String acao = MenuView.lerAcaoSwipe()
 
             if (acao == "L") {
-                MatchService.registrarLikeCandidato(usuarioLogado.id, vaga.id)
-                Empresa empresa = EmpresaService.buscarPorId(vaga.idEmpresa)
-                if (empresa && MatchService.houveMatch(usuarioLogado.id, empresa.id)) {
+                matchService.registrarLikeCandidato(usuarioLogado.id, vaga.id)
+                Empresa empresa = empresaService.buscarPorId(vaga.idEmpresa)
+                if (empresa && matchService.houveMatch(usuarioLogado.id, empresa.id)) {
                     MenuView.exibirMensagem("MATCH com a empresa ${empresa.nome}!")
                 }
             } else if (acao == "S") break
@@ -110,42 +149,42 @@ class AppController {
 
     // ---- FLUXO EMPRESA ----
 
-    private static void fluxoEmpresa() {
+    private void fluxoEmpresa() {
         while (usuarioLogado != null) {
             MenuView.menuEmpresa(usuarioLogado.nome)
             switch (MenuView.lerOpcao()) {
                 case 1: MenuView.exibirPerfilLogado(usuarioLogado); break
                 case 2: editarDadosEmpresa(); break
                 case 3: explorarCandidatos(); break
-                case 4: MenuView.exibirMatchesEmpresa(MatchService.obterMatchesEmpresa(usuarioLogado.id)); break
+                case 4: MenuView.exibirMatchesEmpresa(matchService.obterMatchesEmpresa(usuarioLogado.id)); break
                 case 5: fluxoGerenciarVagas(); break
                 case 0: usuarioLogado = null; break
             }
         }
     }
 
-    private static void editarDadosEmpresa() {
+    private void editarDadosEmpresa() {
         def dados = MenuView.lerEdicaoEmpresa(usuarioLogado as Empresa)
-        EmpresaService.aplicarEdicao(usuarioLogado as Empresa, dados)
+        empresaService.aplicarEdicao(usuarioLogado as Empresa, dados)
         MenuView.exibirMensagem("Sucesso: Dados atualizados!")
     }
 
-    private static void explorarCandidatos() {
-        for (candidato in CandidatoService.listar()) {
+    private void explorarCandidatos() {
+        for (candidato in candidatoService.listar()) {
             MenuView.exibirCandidatoRestrito(candidato)
             MenuView.exibirOpcoesDeCurtir()
             String acao = MenuView.lerAcaoSwipe()
 
             if (acao == "L") {
-                MatchService.registrarLikeEmpresa(usuarioLogado.id, candidato.id)
-                if (MatchService.houveMatch(candidato.id, usuarioLogado.id)) {
+                matchService.registrarLikeEmpresa(usuarioLogado.id, candidato.id)
+                if (matchService.houveMatch(candidato.id, usuarioLogado.id)) {
                     MenuView.exibirMensagem("MATCH!")
                 }
             } else if (acao == "S") break
         }
     }
 
-    private static void fluxoGerenciarVagas() {
+    private void fluxoGerenciarVagas() {
         while (true) {
             MenuView.menuGerenciarVagas()
             switch (MenuView.lerOpcao()) {
@@ -158,7 +197,7 @@ class AppController {
         }
     }
 
-    private static void criarVaga() {
+    private void criarVaga() {
         def dados = MenuView.lerDadosNovaVaga()
         if ([dados.nome, dados.descricao, dados.horario, dados.localizacao, dados.remuneracao].any { it.isEmpty() }) {
             MenuView.exibirMensagem("Erro: Todos os campos são obrigatórios.")
@@ -169,15 +208,15 @@ class AppController {
         gerenciarCompetenciasVaga(competencias)
 
         try {
-            EmpresaService.criarVaga(usuarioLogado.id, new Vaga(dados.nome, dados.descricao, dados.horario, dados.localizacao, dados.remuneracao, competencias, usuarioLogado.id))
+            empresaService.criarVaga(usuarioLogado.id, new Vaga(dados.nome, dados.descricao, dados.horario, dados.localizacao, dados.remuneracao, competencias, usuarioLogado.id))
             MenuView.exibirMensagem("Sucesso: Vaga criada!")
         } catch (IllegalArgumentException e) {
             MenuView.exibirMensagem("Erro: ${e.message}")
         }
     }
 
-    private static void editarVaga() {
-        List<Vaga> vagas = EmpresaService.listarVagasDaEmpresa(usuarioLogado.id)
+    private void editarVaga() {
+        List<Vaga> vagas = empresaService.listarVagasDaEmpresa(usuarioLogado.id)
         if (vagas.isEmpty()) { MenuView.exibirMensagem("\nVocê não possui vagas cadastradas."); return }
 
         MenuView.exibirListaDeVagas(vagas)
@@ -200,14 +239,14 @@ class AppController {
                     competencias,
                     usuarioLogado.id
             )
-            EmpresaService.editarVaga(usuarioLogado.id, indice, atualizada)
+            empresaService.editarVaga(usuarioLogado.id, indice, atualizada)
             MenuView.exibirMensagem("Sucesso: Vaga atualizada!")
         } catch (IllegalArgumentException e) {
             MenuView.exibirMensagem("Erro: ${e.message}")
         }
     }
 
-    private static void gerenciarCompetenciasVaga(List<Competencia> competencias) {
+    private void gerenciarCompetenciasVaga(List<Competencia> competencias) {
         while (true) {
             MenuView.menuCompetenciasVaga()
             switch (MenuView.lerOpcao()) {
@@ -233,29 +272,29 @@ class AppController {
         }
     }
 
-    private static void excluirVaga() {
-        List<Vaga> vagas = EmpresaService.listarVagasDaEmpresa(usuarioLogado.id)
+    private void excluirVaga() {
+        List<Vaga> vagas = empresaService.listarVagasDaEmpresa(usuarioLogado.id)
         if (vagas.isEmpty()) { MenuView.exibirMensagem("\nVocê não possui vagas cadastradas."); return }
 
         MenuView.exibirListaDeVagas(vagas)
         int indice = MenuView.lerNumeroVaga()
 
         try {
-            EmpresaService.excluirVaga(usuarioLogado.id, indice)
+            empresaService.excluirVaga(usuarioLogado.id, indice)
             MenuView.exibirMensagem("Sucesso: Vaga excluída!")
         } catch (IllegalArgumentException e) {
             MenuView.exibirMensagem("Erro: ${e.message}")
         }
     }
 
-    private static void listarVagasDaEmpresa() {
-        List<Vaga> vagas = EmpresaService.listarVagasDaEmpresa(usuarioLogado.id)
+    private void listarVagasDaEmpresa() {
+        List<Vaga> vagas = empresaService.listarVagasDaEmpresa(usuarioLogado.id)
         MenuView.exibirMensagem("\n--- SUAS VAGAS ---")
         if (vagas.isEmpty()) { MenuView.exibirMensagem("Nenhuma vaga cadastrada."); return }
         vagas.eachWithIndex { v, i -> MenuView.exibirMensagem("\n[${i + 1}]\n${v}") }
     }
 
-    private static void fluxoCadastroCandidato() {
+    private void fluxoCadastroCandidato() {
         def dados = MenuView.lerDadosCadastroCandidato()
         if ([dados.nome, dados.email, dados.cpf, dados.estado, dados.cep, dados.senha, dados.descricao].any { it.toString().isEmpty() }) {
             MenuView.exibirMensagem("Erro: Todos os campos são obrigatórios.")
@@ -263,7 +302,7 @@ class AppController {
         }
         try {
             Candidato novo = new Candidato(dados.nome, dados.email, dados.cpf, dados.idade as int, dados.estado, dados.cep, dados.descricao, [], dados.senha)
-            CandidatoService.cadastrar(novo)
+            candidatoService.cadastrar(novo)
             gerenciarCompetencias(novo)
             MenuView.exibirMensagem("Sucesso: Cadastrado com sucesso!")
         } catch (IllegalArgumentException e) {
@@ -271,14 +310,14 @@ class AppController {
         }
     }
 
-    private static void fluxoCadastroEmpresa() {
+    private void fluxoCadastroEmpresa() {
         def dados = MenuView.lerDadosCadastroEmpresa()
         if ([dados.nome, dados.email, dados.cnpj, dados.pais, dados.estado, dados.cep, dados.senha, dados.descricao].any { it.isEmpty() }) {
             MenuView.exibirMensagem("Erro: Todos os campos são obrigatórios.")
             return
         }
         try {
-            EmpresaService.cadastrar(new Empresa(dados.nome, dados.email, dados.cnpj, dados.pais, dados.estado, dados.cep, dados.descricao, dados.senha))
+            empresaService.cadastrar(new Empresa(dados.nome, dados.email, dados.cnpj, dados.pais, dados.estado, dados.cep, dados.descricao, dados.senha))
             MenuView.exibirMensagem("Sucesso: Cadastrada com sucesso!")
         } catch (IllegalArgumentException e) {
             MenuView.exibirMensagem("Erro: ${e.message}")
