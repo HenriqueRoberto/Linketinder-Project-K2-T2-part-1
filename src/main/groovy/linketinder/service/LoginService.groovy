@@ -5,11 +5,19 @@ import linketinder.model.Empresa
 
 class LoginService {
 
-    static Object realizarLogin(String email, String senha) {
-        Candidato candidato = CandidatoService.listar().find { it.email == email && it.senha == senha }
+    private final CandidatoService candidatoService
+    private final EmpresaService empresaService
+
+    LoginService(CandidatoService candidatoService, EmpresaService empresaService) {
+        this.candidatoService = candidatoService
+        this.empresaService = empresaService
+    }
+
+    Object realizarLogin(String email, String senha) {
+        Candidato candidato = candidatoService.listar().find { it.email == email && it.senha == senha }
         if (candidato) return candidato
 
-        Empresa empresa = EmpresaService.listar().find { it.email == email && it.senha == senha }
+        Empresa empresa = empresaService.listar().find { it.email == email && it.senha == senha }
         if (empresa) return empresa
 
         return null
