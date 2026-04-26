@@ -5,14 +5,14 @@ import java.sql.Connection
 import java.sql.PreparedStatement
 import java.sql.ResultSet
 
-class CompetenciaDAO {
+class CompetenciaDAO implements ICompetenciaDAO {
 
-    static List<Competencia> listar() {
+    @Override
+    List<Competencia> listar() {
         List<Competencia> competencias = []
         Connection conn = ConexaoBanco.obterConexao()
 
-        String sql = "SELECT * FROM competencias ORDER BY nome"
-        PreparedStatement stmt = conn.prepareStatement(sql)
+        PreparedStatement stmt = conn.prepareStatement("SELECT * FROM competencias ORDER BY nome")
         ResultSet rs = stmt.executeQuery()
 
         while (rs.next()) {
@@ -21,132 +21,94 @@ class CompetenciaDAO {
             competencias.add(c)
         }
 
-        rs.close()
-        stmt.close()
-        conn.close()
+        rs.close(); stmt.close(); conn.close()
         return competencias
     }
 
-    static int buscarOuInserir(String nome) {
+    @Override
+    int buscarOuInserir(String nome) {
         Connection conn = ConexaoBanco.obterConexao()
         int id = 0
 
-        String sqlBusca = "SELECT id FROM competencias WHERE LOWER(nome) = LOWER(?)"
-        PreparedStatement stmtBusca = conn.prepareStatement(sqlBusca)
+        PreparedStatement stmtBusca = conn.prepareStatement("SELECT id FROM competencias WHERE LOWER(nome) = LOWER(?)")
         stmtBusca.setString(1, nome)
         ResultSet rs = stmtBusca.executeQuery()
 
         if (rs.next()) {
             id = rs.getInt("id")
         } else {
-            String sqlInsert = "INSERT INTO competencias (nome) VALUES (?)"
-            PreparedStatement stmtInsert = conn.prepareStatement(sqlInsert, PreparedStatement.RETURN_GENERATED_KEYS)
+            PreparedStatement stmtInsert = conn.prepareStatement(
+                    "INSERT INTO competencias (nome) VALUES (?)",
+                    PreparedStatement.RETURN_GENERATED_KEYS
+            )
             stmtInsert.setString(1, nome)
             stmtInsert.executeUpdate()
 
             ResultSet chaves = stmtInsert.getGeneratedKeys()
-            if (chaves.next()) {
-                id = chaves.getInt(1)
-            }
-            chaves.close()
-            stmtInsert.close()
+            if (chaves.next()) id = chaves.getInt(1)
+            chaves.close(); stmtInsert.close()
         }
 
-        rs.close()
-        stmtBusca.close()
-        conn.close()
+        rs.close(); stmtBusca.close(); conn.close()
         return id
     }
 
-
-    static void vincularCandidato(int idCandidato, int idCompetencia) {
-        Connection conn = ConexaoBanco.obterConexao()
-
-        String sql = """
-            INSERT INTO candidato_competencia (id_candidato, id_competencia)
-            VALUES (?, ?)
-            ON CONFLICT DO NOTHING
-        """
-        PreparedStatement stmt = conn.prepareStatement(sql)
-        stmt.setInt(1, idCandidato)
-        stmt.setInt(2, idCompetencia)
-        stmt.executeUpdate()
-
-        stmt.close()
-        conn.close()
+    @Override
+    void vincularCandidato(int idCandidato, int idCompetencia) {
+        executarUpdate(
+                "INSERT INTO candidato_competencia (id_candidato, id_competencia) VALUES (?, ?) ON CONFLICT DO NOTHING",
+                idCandidato, idCompetencia
+        )
     }
 
-    static void desvincularCandidato(int idCandidato, int idCompetencia) {
-        Connection conn = ConexaoBanco.obterConexao()
-
-        String sql = """
-            DELETE FROM candidato_competencia
-            WHERE id_candidato = ? AND id_competencia = ?
-        """
-        PreparedStatement stmt = conn.prepareStatement(sql)
-        stmt.setInt(1, idCandidato)
-        stmt.setInt(2, idCompetencia)
-        stmt.executeUpdate()
-
-        stmt.close()
-        conn.close()
+    @Override
+    void desvincularCandidato(int idCandidato, int idCompetencia) {
+        executarUpdate(
+                "DELETE FROM candidato_competencia WHERE id_candidato = ? AND id_competencia = ?",
+                idCandidato, idCompetencia
+        )
     }
 
-    static void desvincularTodasDoCandidato(int idCandidato) {
-        Connection conn = ConexaoBanco.obterConexao()
-
-        String sql = "DELETE FROM candidato_competencia WHERE id_candidato = ?"
-        PreparedStatement stmt = conn.prepareStatement(sql)
-        stmt.setInt(1, idCandidato)
-        stmt.executeUpdate()
-
-        stmt.close()
-        conn.close()
+    @Override
+    void desvincularTodasDoCandidato(int idCandidato) {
+        executarUpdateSimples("DELETE FROM candidato_competencia WHERE id_candidato = ?", idCandidato)
     }
 
-
-    static void vincularVaga(int idVaga, int idCompetencia) {
-        Connection conn = ConexaoBanco.obterConexao()
-
-        String sql = """
-            INSERT INTO vaga_competencia (id_vaga, id_competencia)
-            VALUES (?, ?)
-            ON CONFLICT DO NOTHING
-        """
-        PreparedStatement stmt = conn.prepareStatement(sql)
-        stmt.setInt(1, idVaga)
-        stmt.setInt(2, idCompetencia)
-        stmt.executeUpdate()
-
-        stmt.close()
-        conn.close()
+    @Override
+    void vincularVaga(int idVaga, int idCompetencia) {
+        executarUpdate(
+                "INSERT INTO vaga_competencia (id_vaga, id_competencia) VALUES (?, ?) ON CONFLICT DO NOTHING",
+                idVaga, idCompetencia
+        )
     }
 
-    static void desvincularVaga(int idVaga, int idCompetencia) {
-        Connection conn = ConexaoBanco.obterConexao()
-
-        String sql = """
-            DELETE FROM vaga_competencia
-            WHERE id_vaga = ? AND id_competencia = ?
-        """
-        PreparedStatement stmt = conn.prepareStatement(sql)
-        stmt.setInt(1, idVaga)
-        stmt.setInt(2, idCompetencia)
-        stmt.executeUpdate()
-
-        stmt.close()
-        conn.close()
+    @Override
+    void desvincularVaga(int idVaga, int idCompetencia) {
+        executarUpdate(
+                "DELETE FROM vaga_competencia WHERE id_vaga = ? AND id_competencia = ?",
+                idVaga, idCompetencia
+        )
     }
 
-    static void desvincularTodasDaVaga(int idVaga) {
+    @Override
+    void desvincularTodasDaVaga(int idVaga) {
+        executarUpdateSimples("DELETE FROM vaga_competencia WHERE id_vaga = ?", idVaga)
+    }
+
+    private static void executarUpdate(String sql, int param1, int param2) {
         Connection conn = ConexaoBanco.obterConexao()
-
-        String sql = "DELETE FROM vaga_competencia WHERE id_vaga = ?"
         PreparedStatement stmt = conn.prepareStatement(sql)
-        stmt.setInt(1, idVaga)
+        stmt.setInt(1, param1)
+        stmt.setInt(2, param2)
         stmt.executeUpdate()
+        stmt.close(); conn.close()
+    }
 
-        stmt.close()
-        conn.close()
+    private static void executarUpdateSimples(String sql, int param) {
+        Connection conn = ConexaoBanco.obterConexao()
+        PreparedStatement stmt = conn.prepareStatement(sql)
+        stmt.setInt(1, param)
+        stmt.executeUpdate()
+        stmt.close(); conn.close()
     }
 }
