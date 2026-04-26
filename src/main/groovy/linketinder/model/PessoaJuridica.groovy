@@ -2,6 +2,7 @@ package linketinder.model
 
 class PessoaJuridica implements Pessoa {
 
+    int id
     String nome
     String email
     String cnpj
@@ -32,6 +33,8 @@ class PessoaJuridica implements Pessoa {
     // Getters específicos de Pessoa Jurídica
     String getCnpj() { return cnpj }
     String getPais() { return pais }
+
+    void setId(int id) { this.id = id }
 
     @Override
     String toString() {

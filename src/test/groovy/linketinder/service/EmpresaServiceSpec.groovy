@@ -37,7 +37,6 @@ class EmpresaServiceSpec extends Specification {
     def "Deve cadastrar empresa com e-mail novo"() {
         given: "O DAO informa que o e-mail não existe"
         mockEmpresaDAO.existeEmail("novo@empresa.com") >> false
-        mockEmpresaDAO.inserir(_) >> 5
 
         and: "Uma empresa nova"
         def empresa = new Empresa("Nova", "novo@empresa.com", "33333333000100", "Brasil", "SP", "01000-000", "Desc", "senha")
@@ -46,8 +45,8 @@ class EmpresaServiceSpec extends Specification {
         service.cadastrar(empresa)
 
         then: "O id deve ser preenchido"
+        1 * mockEmpresaDAO.inserir(empresa) >> 5
         empresa.id == 5
-        1 * mockEmpresaDAO.inserir(empresa)
     }
 
     def "Deve criar empresa com os dados fornecidos corretamente"() {
