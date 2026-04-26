@@ -6,9 +6,10 @@ import java.sql.Connection
 import java.sql.PreparedStatement
 import java.sql.ResultSet
 
-class VagaDAO {
+class VagaDAO implements IVagaDAO {
 
-    static List<Vaga> listarPorEmpresa(int idEmpresa) {
+    @Override
+    List<Vaga> listarPorEmpresa(int idEmpresa) {
         Connection conn = ConexaoBanco.obterConexao()
         List<Vaga> vagas = consultarVagas(conn, "SELECT * FROM vagas WHERE id_empresa = ? ORDER BY id") { stmt ->
             stmt.setInt(1, idEmpresa)
@@ -17,14 +18,16 @@ class VagaDAO {
         return vagas
     }
 
-    static List<Vaga> listarTodas() {
+    @Override
+    List<Vaga> listarTodas() {
         Connection conn = ConexaoBanco.obterConexao()
         List<Vaga> vagas = consultarVagas(conn, "SELECT * FROM vagas ORDER BY id") { stmt -> }
         conn.close()
         return vagas
     }
 
-    static int inserir(Vaga vaga) {
+    @Override
+    int inserir(Vaga vaga) {
         Connection conn = ConexaoBanco.obterConexao()
 
         String sql = """
@@ -40,7 +43,8 @@ class VagaDAO {
         return idGerado
     }
 
-    static void atualizar(Vaga vaga) {
+    @Override
+    void atualizar(Vaga vaga) {
         Connection conn = ConexaoBanco.obterConexao()
 
         String sql = """
@@ -60,7 +64,8 @@ class VagaDAO {
         stmt.close(); conn.close()
     }
 
-    static void deletar(int id) {
+    @Override
+    void deletar(int id) {
         Connection conn = ConexaoBanco.obterConexao()
         PreparedStatement stmt = conn.prepareStatement("DELETE FROM vagas WHERE id = ?")
         stmt.setInt(1, id)
@@ -68,7 +73,8 @@ class VagaDAO {
         stmt.close(); conn.close()
     }
 
-    static List<Competencia> buscarCompetenciasDaVaga(Connection conn, int idVaga) {
+    @Override
+    List<Competencia> buscarCompetenciasDaVaga(Connection conn, int idVaga) {
         List<Competencia> competencias = []
 
         String sql = """
@@ -91,7 +97,7 @@ class VagaDAO {
         return competencias
     }
 
-    private static List<Vaga> consultarVagas(Connection conn, String sql, Closure configurarStmt) {
+    private List<Vaga> consultarVagas(Connection conn, String sql, Closure configurarStmt) {
         List<Vaga> vagas = []
         PreparedStatement stmt = conn.prepareStatement(sql)
         configurarStmt(stmt)
