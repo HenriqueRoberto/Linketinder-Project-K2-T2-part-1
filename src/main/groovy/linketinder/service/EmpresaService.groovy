@@ -1,91 +1,97 @@
 package linketinder.service
 
-import linketinder.dao.CompetenciaDAO
-import linketinder.dao.EmpresaDAO
-import linketinder.dao.VagaDAO
+import linketinder.dao.ICompetenciaDAO
+import linketinder.dao.IEmpresaDAO
+import linketinder.dao.IVagaDAO
 import linketinder.model.Competencia
 import linketinder.model.Empresa
 import linketinder.model.Vaga
 
 class EmpresaService {
 
-    static void cadastrar(Empresa empresa) {
-        boolean emailExiste = EmpresaDAO.listar().any { it.email.equalsIgnoreCase(empresa.email) }
+    private final IEmpresaDAO empresaDAO
+    private final IVagaDAO vagaDAO
+    private final ICompetenciaDAO competenciaDAO
 
-        if (emailExiste) {
+    EmpresaService(IEmpresaDAO empresaDAO, IVagaDAO vagaDAO, ICompetenciaDAO competenciaDAO) {
+        this.empresaDAO = empresaDAO
+        this.vagaDAO = vagaDAO
+        this.competenciaDAO = competenciaDAO
+    }
+
+    void cadastrar(Empresa empresa) {
+        if (empresaDAO.existeEmail(empresa.email)) {
             throw new IllegalArgumentException("Erro: O e-mail " + empresa.email + " já está cadastrado.")
         }
-
-        int idGerado = EmpresaDAO.inserir(empresa)
+        int idGerado = empresaDAO.inserir(empresa)
         empresa.id = idGerado
     }
 
-    static List<Empresa> listar() {
-        return EmpresaDAO.listar()
+    List<Empresa> listar() {
+        return empresaDAO.listar()
     }
 
-    static Empresa buscarPorEmail(String email) {
-        return EmpresaDAO.buscarPorEmail(email)
+    Empresa buscarPorEmail(String email) {
+        return empresaDAO.buscarPorEmail(email)
     }
 
-    static Empresa buscarPorId(int id) {
-        return EmpresaDAO.buscarPorId(id)
+    Empresa buscarPorId(int id) {
+        return empresaDAO.buscarPorId(id)
     }
 
-    static void atualizar(Empresa empresa) {
-        EmpresaDAO.atualizar(empresa)
+    void atualizar(Empresa empresa) {
+        empresaDAO.atualizar(empresa)
     }
 
-    static List<Vaga> listarTodasVagas() {
-        return VagaDAO.listarTodas()
+    List<Vaga> listarTodasVagas() {
+        return vagaDAO.listarTodas()
     }
 
-
-    static void criarVaga(int idEmpresa, Vaga vaga) {
-        Empresa empresa = EmpresaDAO.buscarPorId(idEmpresa)
+    void criarVaga(int idEmpresa, Vaga vaga) {
+        Empresa empresa = empresaDAO.buscarPorId(idEmpresa)
         if (empresa == null) throw new IllegalArgumentException("Empresa não encontrada.")
 
-        int idVaga = VagaDAO.inserir(vaga)
+        int idVaga = vagaDAO.inserir(vaga)
         vaga.id = idVaga
 
         for (Competencia comp : vaga.competencias) {
-            int idComp = CompetenciaDAO.buscarOuInserir(comp.nome)
-            CompetenciaDAO.vincularVaga(idVaga, idComp)
+            int idComp = competenciaDAO.buscarOuInserir(comp.nome)
+            competenciaDAO.vincularVaga(idVaga, idComp)
         }
     }
 
-    static List<Vaga> listarVagasDaEmpresa(int idEmpresa) {
-        return VagaDAO.listarPorEmpresa(idEmpresa)
+    List<Vaga> listarVagasDaEmpresa(int idEmpresa) {
+        return vagaDAO.listarPorEmpresa(idEmpresa)
     }
 
-    static void editarVaga(int idEmpresa, int indice, Vaga vagaAtualizada) {
-        List<Vaga> vagas = VagaDAO.listarPorEmpresa(idEmpresa)
+    void editarVaga(int idEmpresa, int indice, Vaga vagaAtualizada) {
+        List<Vaga> vagas = vagaDAO.listarPorEmpresa(idEmpresa)
 
         if (indice < 0 || indice >= vagas.size()) {
             throw new IllegalArgumentException("Índice de vaga inválido.")
         }
 
         vagaAtualizada.id = vagas[indice].id
-        VagaDAO.atualizar(vagaAtualizada)
+        vagaDAO.atualizar(vagaAtualizada)
 
-        CompetenciaDAO.desvincularTodasDaVaga(vagaAtualizada.id)
+        competenciaDAO.desvincularTodasDaVaga(vagaAtualizada.id)
         for (Competencia comp : vagaAtualizada.competencias) {
-            int idComp = CompetenciaDAO.buscarOuInserir(comp.nome)
-            CompetenciaDAO.vincularVaga(vagaAtualizada.id, idComp)
+            int idComp = competenciaDAO.buscarOuInserir(comp.nome)
+            competenciaDAO.vincularVaga(vagaAtualizada.id, idComp)
         }
     }
 
-    static void excluirVaga(int idEmpresa, int indice) {
-        List<Vaga> vagas = VagaDAO.listarPorEmpresa(idEmpresa)
+    void excluirVaga(int idEmpresa, int indice) {
+        List<Vaga> vagas = vagaDAO.listarPorEmpresa(idEmpresa)
 
         if (indice < 0 || indice >= vagas.size()) {
             throw new IllegalArgumentException("Índice de vaga inválido.")
         }
 
-        VagaDAO.deletar(vagas[indice].id)
+        vagaDAO.deletar(vagas[indice].id)
     }
 
-    static void aplicarEdicao(Empresa empresa, Map<String, String> dados) {
+    void aplicarEdicao(Empresa empresa, Map<String, String> dados) {
         if (!dados.nome.isEmpty())      empresa.nome      = dados.nome
         if (!dados.cnpj.isEmpty())      empresa.cnpj      = dados.cnpj
         if (!dados.pais.isEmpty())      empresa.pais      = dados.pais
@@ -93,7 +99,6 @@ class EmpresaService {
         if (!dados.cep.isEmpty())       empresa.cep       = dados.cep
         if (!dados.descricao.isEmpty()) empresa.descricao = dados.descricao
         if (!dados.senha.isEmpty())     empresa.senha     = dados.senha
-        EmpresaDAO.atualizar(empresa)
+        empresaDAO.atualizar(empresa)
     }
 }
-
