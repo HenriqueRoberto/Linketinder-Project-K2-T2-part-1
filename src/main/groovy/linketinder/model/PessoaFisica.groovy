@@ -24,6 +24,7 @@ class PessoaFisica implements Pessoa {
         this.senha = senha
     }
 
+
     @Override String getNome() { return nome }
     @Override String getEmail() { return email }
     @Override String getEstado() { return estado }
@@ -33,6 +34,8 @@ class PessoaFisica implements Pessoa {
 
     String getCpf() { return cpf }
     int getIdade() { return idade }
+
+    void setId(int id) { this.id = id }
 
     @Override
     String toString() {
