@@ -31,7 +31,6 @@ class CandidatoServiceSpec extends Specification {
     def "Deve cadastrar candidato com e-mail novo"() {
         given: "O DAO informa que o e-mail não existe"
         mockDAO.existeEmail("novo@email.com") >> false
-        mockDAO.inserir(_) >> 1
 
         and: "Um candidato novo"
         def candidato = new Candidato("Ana", "novo@email.com", "11111111111", 22, "SC", "88000-000", "Dev", [], "senha")
@@ -40,8 +39,8 @@ class CandidatoServiceSpec extends Specification {
         service.cadastrar(candidato)
 
         then: "O id deve ser preenchido"
+        1 * mockDAO.inserir(candidato) >> 1
         candidato.id == 1
-        1 * mockDAO.inserir(candidato)
     }
 
     def "Deve criar candidato com os dados fornecidos corretamente"() {
