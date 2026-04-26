@@ -7,27 +7,36 @@ import linketinder.model.Vaga
 
 class MatchService {
 
-    private static Map<Integer, Set<Integer>> likesPorCandidato = [:]
-    private static Map<Integer, Set<Integer>> likesPorEmpresa   = [:]
-    private static List<Match> matches = []
+    private final EmpresaService empresaService
+    private final CandidatoService candidatoService
 
-    static void registrarLikeCandidato(int idCandidato, int idVaga) {
+    private Map<Integer, Set<Integer>> likesPorCandidato = [:]
+    private Map<Integer, Set<Integer>> likesPorEmpresa   = [:]
+    private List<Match> matches = []
+
+    MatchService(EmpresaService empresaService, CandidatoService candidatoService) {
+        this.empresaService = empresaService
+        this.candidatoService = candidatoService
+    }
+
+    void registrarLikeCandidato(int idCandidato, int idVaga) {
         adicionarLike(likesPorCandidato, idCandidato, idVaga)
     }
 
-    static void registrarLikeEmpresa(int idEmpresa, int idCandidato) {
+    void registrarLikeEmpresa(int idEmpresa, int idCandidato) {
         adicionarLike(likesPorEmpresa, idEmpresa, idCandidato)
     }
 
-    static boolean houveMatch(int idCandidato, int idEmpresa) {
+    boolean houveMatch(int idCandidato, int idEmpresa) {
         boolean empresaCurtiuCandidato = likesPorEmpresa[idEmpresa]?.contains(idCandidato) ?: false
         if (!empresaCurtiuCandidato) return false
 
-        Empresa empresa = EmpresaService.buscarPorId(idEmpresa)
+        Empresa empresa = empresaService.buscarPorId(idEmpresa)
         if (empresa == null) return false
 
+        List<Vaga> vagasDaEmpresa = empresaService.listarVagasDaEmpresa(idEmpresa)
         Set<Integer> vagasCurtidasPeloCandidato = likesPorCandidato[idCandidato] ?: ([] as Set)
-        List<Vaga> vagasEmComum = empresa.vagas.findAll { vaga -> vagasCurtidasPeloCandidato.contains(vaga.id) }
+        List<Vaga> vagasEmComum = vagasDaEmpresa.findAll { vaga -> vagasCurtidasPeloCandidato.contains(vaga.id) }
 
         if (vagasEmComum.isEmpty()) return false
 
@@ -39,15 +48,18 @@ class MatchService {
         return true
     }
 
-    static List<Map> obterMatchesCandidato(int idCandidato) {
+    List<Map> obterMatchesCandidato(int idCandidato) {
         List<Map> resultado = []
 
         matches.findAll { it.idCandidato == idCandidato }.each { match ->
-            Empresa empresa = EmpresaService.listar().find { e -> e.vagas.any { v -> v.id == match.idVaga } }
-            if (empresa == null) return
+            List<Empresa> todasEmpresas = empresaService.listar()
+            List<Vaga> todasVagas = todasEmpresas.collectMany { empresaService.listarVagasDaEmpresa(it.id) }
 
-            Vaga vaga = empresa.vagas.find { v -> v.id == match.idVaga }
+            Vaga vaga = todasVagas.find { it.id == match.idVaga }
             if (vaga == null) return
+
+            Empresa empresa = todasEmpresas.find { e -> empresaService.listarVagasDaEmpresa(e.id).any { v -> v.id == match.idVaga } }
+            if (empresa == null) return
 
             resultado << [vaga: vaga, empresa: empresa]
         }
@@ -55,16 +67,16 @@ class MatchService {
         return resultado
     }
 
-    static List<Map> obterMatchesEmpresa(int idEmpresa) {
+    List<Map> obterMatchesEmpresa(int idEmpresa) {
         List<Map> resultado = []
 
-        Empresa empresa = EmpresaService.buscarPorId(idEmpresa)
+        Empresa empresa = empresaService.buscarPorId(idEmpresa)
         if (empresa == null) return resultado
 
-        empresa.vagas.each { vaga ->
+        empresaService.listarVagasDaEmpresa(idEmpresa).each { vaga ->
             List<Candidato> candidatosComMatch = matches
                     .findAll { it.idVaga == vaga.id }
-                    .collect { match -> CandidatoService.listar().find { c -> c.id == match.idCandidato } }
+                    .collect { match -> candidatoService.listar().find { c -> c.id == match.idCandidato } }
                     .findAll { it != null }
 
             if (!candidatosComMatch.isEmpty()) {
