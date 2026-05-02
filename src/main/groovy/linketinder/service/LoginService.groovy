@@ -2,6 +2,7 @@ package linketinder.service
 
 import linketinder.model.Candidato
 import linketinder.model.Empresa
+import linketinder.model.Pessoa
 
 class LoginService {
 
@@ -13,7 +14,7 @@ class LoginService {
         this.empresaService = empresaService
     }
 
-    Object realizarLogin(String email, String senha) {
+    Pessoa realizarLogin(String email, String senha) {
         Candidato candidato = candidatoService.listar().find { it.email == email && it.senha == senha }
         if (candidato) return candidato
 
