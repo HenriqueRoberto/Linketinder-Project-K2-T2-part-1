@@ -68,15 +68,12 @@ class MenuView {
         print "Escolha uma opção: "
     }
 
-    // ---- LEITURA DE OPÇÕES ----
-
     static int lerOpcao() {
         int op = scanner.nextInt()
         scanner.nextLine()
         return op
     }
 
-    // ---- LEITURA DE DADOS ----
 
     static Map<String, String> lerCredenciaisLogin() {
         println "\n--- LOGIN ---"
@@ -188,9 +185,8 @@ class MenuView {
         return num - 1
     }
 
-    // ---- EXIBIÇÃO ----
 
-    static void exibirPerfilLogado(Object usuario) {
+    static void exibirPerfilLogado(Pessoa usuario) {
         println "\n--- SEU PERFIL ---"
         println usuario.toString()
     }
@@ -266,7 +262,7 @@ class MenuView {
         println mensagem
     }
 
-    // ---- HELPERS PRIVADOS ----
+    // ---- HELPERS ----
 
     private static void exibirCandidatoCompleto(Candidato candidato) {
         println "\n  Nome: ${candidato.nome}"
