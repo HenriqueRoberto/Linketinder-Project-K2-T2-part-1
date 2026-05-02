@@ -18,7 +18,6 @@ class AppController {
 
     private Object usuarioLogado = null
 
-    // Construtor principal com injeção de dependência
     AppController(CandidatoService candidatoService,
                   EmpresaService empresaService,
                   CompetenciaService competenciaService,
@@ -31,7 +30,6 @@ class AppController {
         this.loginService       = loginService
     }
 
-    // Factory method: monta todas as dependências reais
     static AppController criar() {
         def candidatoDAO    = new CandidatoDAO()
         def empresaDAO      = new EmpresaDAO()
@@ -67,8 +65,6 @@ class AppController {
         else if (usuarioLogado instanceof Empresa) fluxoEmpresa()
         else MenuView.exibirMensagem("Erro: Credenciais inválidas.")
     }
-
-    // ---- FLUXO CANDIDATO ----
 
     private void fluxoCandidato() {
         while (usuarioLogado != null) {
@@ -147,8 +143,6 @@ class AppController {
         }
     }
 
-    // ---- FLUXO EMPRESA ----
-
     private void fluxoEmpresa() {
         while (usuarioLogado != null) {
             MenuView.menuEmpresa(usuarioLogado.nome)
@@ -208,7 +202,16 @@ class AppController {
         gerenciarCompetenciasVaga(competencias)
 
         try {
-            empresaService.criarVaga(usuarioLogado.id, new Vaga(dados.nome, dados.descricao, dados.horario, dados.localizacao, dados.remuneracao, competencias, usuarioLogado.id))
+            Vaga vaga = new Vaga.Builder()
+                    .nome(dados.nome)
+                    .descricao(dados.descricao)
+                    .horario(dados.horario)
+                    .localizacao(dados.localizacao)
+                    .remuneracao(dados.remuneracao)
+                    .competencias(competencias)
+                    .idEmpresa(usuarioLogado.id)
+                    .build()
+            empresaService.criarVaga(usuarioLogado.id, vaga)
             MenuView.exibirMensagem("Sucesso: Vaga criada!")
         } catch (IllegalArgumentException e) {
             MenuView.exibirMensagem("Erro: ${e.message}")
@@ -230,15 +233,15 @@ class AppController {
         gerenciarCompetenciasVaga(competencias)
 
         try {
-            Vaga atualizada = new Vaga(
-                    dados.nome        ?: vaga.nome,
-                    dados.descricao   ?: vaga.descricao,
-                    dados.horario     ?: vaga.horario,
-                    dados.localizacao ?: vaga.localizacao,
-                    dados.remuneracao ?: vaga.remuneracao,
-                    competencias,
-                    usuarioLogado.id
-            )
+            Vaga atualizada = new Vaga.Builder()
+                    .nome(dados.nome ?: vaga.nome)
+                    .descricao(dados.descricao ?: vaga.descricao)
+                    .horario(dados.horario ?: vaga.horario)
+                    .localizacao(dados.localizacao ?: vaga.localizacao)
+                    .remuneracao(dados.remuneracao ?: vaga.remuneracao)
+                    .competencias(competencias)
+                    .idEmpresa(usuarioLogado.id)
+                    .build()
             empresaService.editarVaga(usuarioLogado.id, indice, atualizada)
             MenuView.exibirMensagem("Sucesso: Vaga atualizada!")
         } catch (IllegalArgumentException e) {
@@ -301,7 +304,17 @@ class AppController {
             return
         }
         try {
-            Candidato novo = new Candidato(dados.nome, dados.email, dados.cpf, dados.idade as int, dados.estado, dados.cep, dados.descricao, [], dados.senha)
+            Candidato novo = new Candidato.Builder()
+                    .nome(dados.nome)
+                    .email(dados.email)
+                    .cpf(dados.cpf)
+                    .idade(dados.idade as int)
+                    .estado(dados.estado)
+                    .cep(dados.cep)
+                    .descricao(dados.descricao)
+                    .competencias([])
+                    .senha(dados.senha)
+                    .build()
             candidatoService.cadastrar(novo)
             gerenciarCompetencias(novo)
             MenuView.exibirMensagem("Sucesso: Cadastrado com sucesso!")
@@ -317,7 +330,17 @@ class AppController {
             return
         }
         try {
-            empresaService.cadastrar(new Empresa(dados.nome, dados.email, dados.cnpj, dados.pais, dados.estado, dados.cep, dados.descricao, dados.senha))
+            Empresa nova = new Empresa.Builder()
+                    .nome(dados.nome)
+                    .email(dados.email)
+                    .cnpj(dados.cnpj)
+                    .pais(dados.pais)
+                    .estado(dados.estado)
+                    .cep(dados.cep)
+                    .descricao(dados.descricao)
+                    .senha(dados.senha)
+                    .build()
+            empresaService.cadastrar(nova)
             MenuView.exibirMensagem("Sucesso: Cadastrada com sucesso!")
         } catch (IllegalArgumentException e) {
             MenuView.exibirMensagem("Erro: ${e.message}")
