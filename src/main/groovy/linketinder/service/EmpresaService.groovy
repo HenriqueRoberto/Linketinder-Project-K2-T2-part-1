@@ -31,17 +31,11 @@ class EmpresaService {
         return empresaDAO.listar()
     }
 
-    Empresa buscarPorEmail(String email) {
-        return empresaDAO.buscarPorEmail(email)
-    }
 
     Empresa buscarPorId(int id) {
         return empresaDAO.buscarPorId(id)
     }
 
-    void atualizar(Empresa empresa) {
-        empresaDAO.atualizar(empresa)
-    }
 
     List<Vaga> listarTodasVagas() {
         return vagaDAO.listarTodas()

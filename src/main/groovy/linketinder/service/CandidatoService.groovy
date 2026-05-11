@@ -23,13 +23,7 @@ class CandidatoService {
         return candidatoDAO.listar()
     }
 
-    void atualizar(Candidato candidato) {
-        candidatoDAO.atualizar(candidato)
-    }
 
-    void deletar(int id) {
-        candidatoDAO.deletar(id)
-    }
 
     void aplicarEdicao(Candidato candidato, Map<String, String> dados) {
         if (!dados.nome.isEmpty())      candidato.nome      = dados.nome

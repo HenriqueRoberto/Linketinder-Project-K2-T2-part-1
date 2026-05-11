@@ -70,24 +70,12 @@ class EmpresaDAO implements IEmpresaDAO {
         stmt.close(); conn.close()
     }
 
-    @Override
-    void deletar(int id) {
-        Connection conn = ConexaoBanco.obterConexao()
-        PreparedStatement stmt = conn.prepareStatement("DELETE FROM empresas WHERE id = ?")
-        stmt.setInt(1, id)
-        stmt.executeUpdate()
-        stmt.close(); conn.close()
-    }
 
     @Override
     Empresa buscarPorId(int id) {
         return buscarPorCriterio("SELECT * FROM empresas WHERE id = ?") { stmt -> stmt.setInt(1, id) }
     }
 
-    @Override
-    Empresa buscarPorEmail(String email) {
-        return buscarPorCriterio("SELECT * FROM empresas WHERE LOWER(email) = LOWER(?)") { stmt -> stmt.setString(1, email) }
-    }
 
     private static Empresa buscarPorCriterio(String sql, Closure configurarStmt) {
         Connection conn = ConexaoBanco.obterConexao()

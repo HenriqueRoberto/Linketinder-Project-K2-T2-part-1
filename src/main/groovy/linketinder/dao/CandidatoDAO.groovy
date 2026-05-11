@@ -73,14 +73,6 @@ class CandidatoDAO implements ICandidatoDAO {
         stmt.close(); conn.close()
     }
 
-    @Override
-    void deletar(int id) {
-        Connection conn = ConexaoBanco.obterConexao()
-        PreparedStatement stmt = conn.prepareStatement("DELETE FROM candidatos WHERE id = ?")
-        stmt.setInt(1, id)
-        stmt.executeUpdate()
-        stmt.close(); conn.close()
-    }
 
     @Override
     List<Competencia> buscarCompetenciasDoCandidato(Connection conn, int idCandidato) {
