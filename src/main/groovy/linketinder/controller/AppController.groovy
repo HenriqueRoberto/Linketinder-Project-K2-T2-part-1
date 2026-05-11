@@ -4,24 +4,25 @@ import linketinder.dao.CandidatoDAO
 import linketinder.dao.CompetenciaDAO
 import linketinder.dao.EmpresaDAO
 import linketinder.dao.VagaDAO
-import linketinder.model.Candidato
-import linketinder.model.Empresa
 import linketinder.model.Pessoa
 import linketinder.service.*
-import linketinder.view.MenuView
 
 class AppController {
 
+    final CandidatoController candidatoController
+    final EmpresaController   empresaController
+    final VagaController      vagaController
+
     private final LoginService loginService
-    private final CandidatoController candidatoController
-    private final EmpresaController empresaController
 
     AppController(LoginService loginService,
                   CandidatoController candidatoController,
-                  EmpresaController empresaController) {
+                  EmpresaController empresaController,
+                  VagaController vagaController) {
         this.loginService        = loginService
         this.candidatoController = candidatoController
         this.empresaController   = empresaController
+        this.vagaController      = vagaController
     }
 
     static AppController criar() {
@@ -38,29 +39,12 @@ class AppController {
 
         def vagaController      = new VagaController(empresaService)
         def candidatoController = new CandidatoController(candidatoService, competenciaService, empresaService, matchService)
-        def empresaController   = new EmpresaController(empresaService, candidatoService, matchService, vagaController)
+        def empresaController   = new EmpresaController(empresaService, candidatoService, matchService)
 
-        return new AppController(loginService, candidatoController, empresaController)
+        return new AppController(loginService, candidatoController, empresaController, vagaController)
     }
 
-    void iniciar() {
-        while (true) {
-            MenuView.mostrarMenuInicial()
-            switch (MenuView.lerOpcao()) {
-                case 1: fluxoLogin(); break
-                case 2: candidatoController.fluxoCadastro(); break
-                case 3: empresaController.fluxoCadastro(); break
-                case 0: return
-            }
-        }
-    }
-
-    private void fluxoLogin() {
-        def credenciais = MenuView.lerCredenciaisLogin()
-        Pessoa usuario = loginService.realizarLogin(credenciais.email, credenciais.senha)
-
-        if (usuario instanceof Candidato)  candidatoController.iniciarFluxo(usuario as Candidato)
-        else if (usuario instanceof Empresa) empresaController.iniciarFluxo(usuario as Empresa)
-        else MenuView.exibirMensagem("Erro: Credenciais inválidas.")
+    Pessoa login(String email, String senha) {
+        return loginService.realizarLogin(email, senha)
     }
 }
