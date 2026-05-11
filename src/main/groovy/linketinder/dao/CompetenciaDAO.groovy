@@ -69,10 +69,7 @@ class CompetenciaDAO implements ICompetenciaDAO {
         )
     }
 
-    @Override
-    void desvincularTodasDoCandidato(int idCandidato) {
-        executarUpdateSimples("DELETE FROM candidato_competencia WHERE id_candidato = ?", idCandidato)
-    }
+
 
     @Override
     void vincularVaga(int idVaga, int idCompetencia) {
@@ -82,13 +79,6 @@ class CompetenciaDAO implements ICompetenciaDAO {
         )
     }
 
-    @Override
-    void desvincularVaga(int idVaga, int idCompetencia) {
-        executarUpdate(
-                "DELETE FROM vaga_competencia WHERE id_vaga = ? AND id_competencia = ?",
-                idVaga, idCompetencia
-        )
-    }
 
     @Override
     void desvincularTodasDaVaga(int idVaga) {
